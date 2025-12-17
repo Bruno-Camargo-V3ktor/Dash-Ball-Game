@@ -17,7 +17,10 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_systems(Startup, (spawn_camera, spawn_player, spawn_enemies).chain())
-        .add_systems(Update, (player_movement, confine_player).chain())
+        .add_systems(
+            Update,
+            (camera_position, player_movement, confine_player).chain(),
+        )
         .run();
 }
 
@@ -45,12 +48,22 @@ pub fn spawn_camera(
     let mut window = window_query.single_mut().unwrap();
 
     window.resolution = WindowResolution::new(1280, 720);
-    window.resizable = false;
+    //window.resizable = false;
 
     commands.spawn((
         Camera2d::default(),
         Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
     ));
+}
+
+pub fn camera_position(
+    mut camera_query: Query<&mut Transform, With<Camera2d>>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+) {
+    if let (Ok(mut camera), Ok(window)) = (camera_query.single_mut(), window_query.single()) {
+        camera.translation.x = window.width() / 2.0;
+        camera.translation.y = window.height() / 2.0
+    }
 }
 
 pub fn spawn_enemies(
@@ -121,23 +134,8 @@ pub fn confine_player(
         let y_max = window.height() - half_player_size;
 
         let mut translation = player_transform.translation;
-
-        translation.x = if translation.x < x_min {
-            x_min
-        } else if translation.x > x_max {
-            x_max
-        } else {
-            translation.x
-        };
-
-        translation.y = if translation.y < y_min {
-            y_min
-        } else if translation.y > y_max {
-            y_max
-        } else {
-            translation.y
-        };
-
+        translation.x = translation.x.clamp(x_min, x_max);
+        translation.y = translation.y.clamp(y_min, y_max);
         player_transform.translation = translation;
     }
 }
