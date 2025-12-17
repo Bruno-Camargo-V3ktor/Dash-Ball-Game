@@ -2,19 +2,24 @@ use bevy::{
     prelude::*,
     window::{PrimaryWindow, WindowResolution},
 };
-
-fn main() {
-    App::new()
-        .add_plugins(DefaultPlugins)
-        .add_systems(Startup, (spawn_camera, spawn_player).chain())
-        .add_systems(Update, (player_movement, confine_player).chain())
-        .run();
-}
+use rand::random;
 
 pub const PLAYER_SPEED: f32 = 500.0;
 pub const PLAYER_SIZE: f32 = 64.0;
 #[derive(Component)]
 pub struct Player {}
+
+pub const NUMBER_OF_ENEMIES: usize = 4;
+#[derive(Component)]
+struct Enemy {}
+
+fn main() {
+    App::new()
+        .add_plugins(DefaultPlugins)
+        .add_systems(Startup, (spawn_camera, spawn_player, spawn_enemies).chain())
+        .add_systems(Update, (player_movement, confine_player).chain())
+        .run();
+}
 
 pub fn spawn_player(
     mut commands: Commands,
@@ -41,12 +46,33 @@ pub fn spawn_camera(
 
     window.resolution = WindowResolution::new(1280, 720);
     window.resizable = false;
-    window.decorations = true;
 
     commands.spawn((
         Camera2d::default(),
         Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
     ));
+}
+
+pub fn spawn_enemies(
+    mut commands: Commands,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    asset_server: Res<AssetServer>,
+) {
+    let window = window_query.single().unwrap();
+
+    for _ in 0..NUMBER_OF_ENEMIES {
+        let random_x = random::<f32>() * window.width();
+        let random_y = random::<f32>() * window.height();
+
+        commands.spawn((
+            Enemy {},
+            Sprite {
+                image: asset_server.load("sprites/ball_red_large.png"),
+                ..Default::default()
+            },
+            Transform::from_xyz(random_x, random_y, 0.0),
+        ));
+    }
 }
 
 pub fn player_movement(
