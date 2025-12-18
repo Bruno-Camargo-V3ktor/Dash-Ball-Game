@@ -14,6 +14,23 @@ pub struct Enemy {
     pub direction: Vec2,
 }
 
+#[derive(Component)]
+pub struct BouncEnemySound {}
+impl BouncEnemySound {
+    pub fn new(
+        asset_server: &Res<'_, AssetServer>
+    ) -> (BouncEnemySound, AudioPlayer, PlaybackSettings) {
+        (
+            BouncEnemySound {},
+            AudioPlayer::new(asset_server.load("audio/pluck_001.ogg")),
+            PlaybackSettings {
+                mode: bevy::audio::PlaybackMode::Despawn,
+                ..Default::default()
+            },
+        )
+    }
+}
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
@@ -160,7 +177,9 @@ pub fn enemy_movement(enemy_query: Query<(&mut Transform, &Enemy)>, time: Res<Ti
 
 pub fn update_enemy_direction(
     enemy_query: Query<(&Transform, &mut Enemy)>,
-    window_query: Query<&Window, With<PrimaryWindow>>
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    asset_server: Res<AssetServer>,
+    mut commands: Commands
 ) {
     if let Ok(window) = window_query.single() {
         let half_enemy_size: f32 = ENEMY_SIZE / 2.0;
@@ -174,10 +193,12 @@ pub fn update_enemy_direction(
 
             if translation.x <= x_min || translation.x >= x_max {
                 enemy.direction.x *= -1.0;
+                commands.spawn(BouncEnemySound::new(&asset_server));
             }
 
             if translation.y <= y_min || translation.y >= y_max {
                 enemy.direction.y *= -1.0;
+                commands.spawn(BouncEnemySound::new(&asset_server));
             }
         }
     }
