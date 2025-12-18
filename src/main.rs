@@ -37,9 +37,15 @@ impl BouncEnemySound {
     pub fn new(
         asset_server: &Res<'_, AssetServer>
     ) -> (BouncEnemySound, AudioPlayer, PlaybackSettings) {
+        let audio = if random::<f32>() < 0.5 {
+            asset_server.load("audio/pluck_001.ogg")
+        } else {
+            asset_server.load("audio/pluck_002.ogg")
+        };
+
         (
             BouncEnemySound {},
-            AudioPlayer::new(asset_server.load("audio/pluck_001.ogg")),
+            AudioPlayer::new(audio),
             PlaybackSettings {
                 mode: bevy::audio::PlaybackMode::Despawn,
                 ..Default::default()
