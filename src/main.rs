@@ -20,7 +20,14 @@ fn main() {
         .add_systems(Startup, (spawn_camera, spawn_player, spawn_enemies).chain())
         .add_systems(
             Update,
-            (camera_position, player_movement, confine_player, enemy_movement).chain()
+            (
+                camera_position,
+                player_movement,
+                confine_player,
+                confine_enemy,
+                update_enemy_direction,
+                enemy_movement,
+            ).chain()
         )
         .run();
 }
@@ -148,5 +155,51 @@ pub fn enemy_movement(enemy_query: Query<(&mut Transform, &Enemy)>, time: Res<Ti
     for (mut transform, enemy) in enemy_query {
         let dir = Vec3::new(enemy.direction.x, enemy.direction.y, 0.0);
         transform.translation += dir * (ENEMY_SPEED * time.delta_secs());
+    }
+}
+
+pub fn update_enemy_direction(
+    enemy_query: Query<(&Transform, &mut Enemy)>,
+    window_query: Query<&Window, With<PrimaryWindow>>
+) {
+    if let Ok(window) = window_query.single() {
+        let half_enemy_size: f32 = ENEMY_SIZE / 2.0;
+        let x_min = 0.0 + half_enemy_size;
+        let x_max = window.width() - half_enemy_size;
+        let y_min = 0.0 + half_enemy_size;
+        let y_max = window.height() - half_enemy_size;
+
+        for (transform, mut enemy) in enemy_query {
+            let translation = transform.translation;
+
+            if translation.x <= x_min || translation.x >= x_max {
+                enemy.direction.x *= -1.0;
+            }
+
+            if translation.y <= y_min || translation.y >= y_max {
+                enemy.direction.y *= -1.0;
+            }
+        }
+    }
+}
+
+pub fn confine_enemy(
+    enemy_query: Query<&mut Transform, With<Enemy>>,
+    window_query: Query<&Window, With<PrimaryWindow>>
+) {
+    if let Ok(window) = window_query.single() {
+        let half_enemy_size: f32 = ENEMY_SIZE / 2.0;
+        let x_min = 0.0 + half_enemy_size;
+        let x_max = window.width() - half_enemy_size;
+        let y_min = 0.0 + half_enemy_size;
+        let y_max = window.height() - half_enemy_size;
+
+        for mut transform in enemy_query {
+            let mut translation = transform.translation;
+
+            translation.x = translation.x.clamp(x_min, x_max);
+            translation.y = translation.y.clamp(y_min, y_max);
+            transform.translation = translation;
+        }
     }
 }
