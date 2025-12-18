@@ -1,7 +1,4 @@
-use bevy::{
-    prelude::*,
-    window::{PrimaryWindow, WindowResolution},
-};
+use bevy::{ prelude::*, window::{ PrimaryWindow, WindowResolution } };
 use rand::random;
 
 pub const PLAYER_SPEED: f32 = 500.0;
@@ -10,8 +7,12 @@ pub const PLAYER_SIZE: f32 = 64.0;
 pub struct Player {}
 
 pub const NUMBER_OF_ENEMIES: usize = 4;
+pub const ENEMY_SPEED: f32 = 200.0;
+pub const ENEMY_SIZE: f32 = 64.0;
 #[derive(Component)]
-struct Enemy {}
+pub struct Enemy {
+    pub direction: Vec2,
+}
 
 fn main() {
     App::new()
@@ -19,7 +20,7 @@ fn main() {
         .add_systems(Startup, (spawn_camera, spawn_player, spawn_enemies).chain())
         .add_systems(
             Update,
-            (camera_position, player_movement, confine_player).chain(),
+            (camera_position, player_movement, confine_player, enemy_movement).chain()
         )
         .run();
 }
@@ -27,7 +28,7 @@ fn main() {
 pub fn spawn_player(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
-    asset_server: Res<AssetServer>,
+    asset_server: Res<AssetServer>
 ) {
     let window = window_query.single().unwrap();
 
@@ -43,7 +44,7 @@ pub fn spawn_player(
 
 pub fn spawn_camera(
     mut commands: Commands,
-    mut window_query: Query<&mut Window, With<PrimaryWindow>>,
+    mut window_query: Query<&mut Window, With<PrimaryWindow>>
 ) {
     let mut window = window_query.single_mut().unwrap();
 
@@ -58,18 +59,18 @@ pub fn spawn_camera(
 
 pub fn camera_position(
     mut camera_query: Query<&mut Transform, With<Camera2d>>,
-    window_query: Query<&Window, With<PrimaryWindow>>,
+    window_query: Query<&Window, With<PrimaryWindow>>
 ) {
     if let (Ok(mut camera), Ok(window)) = (camera_query.single_mut(), window_query.single()) {
         camera.translation.x = window.width() / 2.0;
-        camera.translation.y = window.height() / 2.0
+        camera.translation.y = window.height() / 2.0;
     }
 }
 
 pub fn spawn_enemies(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
-    asset_server: Res<AssetServer>,
+    asset_server: Res<AssetServer>
 ) {
     let window = window_query.single().unwrap();
 
@@ -78,7 +79,7 @@ pub fn spawn_enemies(
         let random_y = random::<f32>() * window.height();
 
         commands.spawn((
-            Enemy {},
+            Enemy { direction: Vec2::new(random::<f32>(), random::<f32>()).normalize() },
             Sprite {
                 image: asset_server.load("sprites/ball_red_large.png"),
                 ..Default::default()
@@ -91,7 +92,7 @@ pub fn spawn_enemies(
 pub fn player_movement(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut player_query: Query<&mut Transform, With<Player>>,
-    time: Res<Time>,
+    time: Res<Time>
 ) {
     if let Ok(mut transform) = player_query.single_mut() {
         let mut dir = Vec3::ZERO;
@@ -122,10 +123,13 @@ pub fn player_movement(
 
 pub fn confine_player(
     mut player_query: Query<&mut Transform, With<Player>>,
-    window_query: Query<&Window, With<PrimaryWindow>>,
+    window_query: Query<&Window, With<PrimaryWindow>>
 ) {
-    if let (Ok(mut player_transform), Ok(window)) =
-        (player_query.single_mut(), window_query.single())
+    if
+        let (Ok(mut player_transform), Ok(window)) = (
+            player_query.single_mut(),
+            window_query.single(),
+        )
     {
         let half_player_size: f32 = PLAYER_SIZE / 2.0;
         let x_min = 0.0 + half_player_size;
@@ -137,5 +141,12 @@ pub fn confine_player(
         translation.x = translation.x.clamp(x_min, x_max);
         translation.y = translation.y.clamp(y_min, y_max);
         player_transform.translation = translation;
+    }
+}
+
+pub fn enemy_movement(enemy_query: Query<(&mut Transform, &Enemy)>, time: Res<Time>) {
+    for (mut transform, enemy) in enemy_query {
+        let dir = Vec3::new(enemy.direction.x, enemy.direction.y, 0.0);
+        transform.translation += dir * (ENEMY_SPEED * time.delta_secs());
     }
 }
