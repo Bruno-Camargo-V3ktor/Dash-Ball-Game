@@ -44,6 +44,7 @@ fn main() {
                 confine_enemy,
                 update_enemy_direction,
                 enemy_movement,
+                enemy_hit_player,
             ).chain()
         )
         .run();
@@ -221,6 +222,26 @@ pub fn confine_enemy(
             translation.x = translation.x.clamp(x_min, x_max);
             translation.y = translation.y.clamp(y_min, y_max);
             transform.translation = translation;
+        }
+    }
+}
+
+pub fn enemy_hit_player(
+    mut commands: Commands,
+    mut player_query: Query<(Entity, &Transform), With<Player>>,
+    enemy_query: Query<&Transform, With<Enemy>>,
+    asset_server: Res<AssetServer>
+) {
+    if let Ok((player_entity, player_transform)) = player_query.single_mut() {
+        for enemy_transform in enemy_query {
+            let distance = player_transform.translation.distance(enemy_transform.translation);
+
+            let player_radius = PLAYER_SIZE / 2.0;
+            let enemy_radius = ENEMY_SIZE / 2.0;
+
+            if distance < player_radius + enemy_radius {
+                commands.entity(player_entity).despawn();
+            }
         }
     }
 }
