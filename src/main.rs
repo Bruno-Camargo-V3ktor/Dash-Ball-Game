@@ -54,10 +54,15 @@ impl BouncEnemySound {
     }
 }
 
+pub const NUMBER_OF_STARS: usize = 10;
+pub const STAR_SIZE: f32 = 30.0;
+#[derive(Component)]
+pub struct Star {}
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_systems(Startup, (spawn_camera, spawn_player, spawn_enemies).chain())
+        .add_systems(Startup, (spawn_camera, spawn_player, spawn_enemies, spawn_stars).chain())
         .add_systems(
             Update,
             (
@@ -88,6 +93,27 @@ pub fn spawn_player(
         },
         Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
     ));
+}
+
+pub fn spawn_stars(
+    mut commands: Commands,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    asset_server: Res<AssetServer>
+) {
+    if let Ok(window) = window_query.single() {
+        for _ in 0..NUMBER_OF_STARS {
+            let pos_x =
+                random::<f32>() * window.width().clamp(STAR_SIZE, window.width() - STAR_SIZE);
+            let pos_y =
+                random::<f32>() * window.height().clamp(STAR_SIZE, window.height() - STAR_SIZE);
+
+            commands.spawn((
+                Star {},
+                Sprite::from_image(asset_server.load("sprites/star.png")),
+                Transform::from_xyz(pos_x, pos_y, 0.0),
+            ));
+        }
+    }
 }
 
 pub fn spawn_camera(
