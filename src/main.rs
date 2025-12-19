@@ -54,7 +54,7 @@ impl BouncEnemySound {
     }
 }
 
-pub const NUMBER_OF_STARS: usize = 10;
+pub const NUMBER_OF_STARS: usize = 3;
 pub const STAR_SIZE: f32 = 30.0;
 #[derive(Component)]
 pub struct Star {}
@@ -70,7 +70,7 @@ pub struct Score {
     pub value: u32,
 }
 
-pub const STAR_SPAWN_TIME: f32 = 1.0;
+pub const STAR_SPAWN_TIME: f32 = 3.0;
 #[derive(Resource)]
 pub struct StarSpawnTimer {
     pub timer: Timer,
@@ -92,6 +92,7 @@ fn main() {
             Update,
             (
                 tick_star_spawn_timer,
+                spawn_stars_over_time,
                 camera_position,
                 player_movement,
                 player_hit_star,
@@ -351,4 +352,26 @@ pub fn player_hit_star(
 
 pub fn tick_star_spawn_timer(mut star_spawn_timer: ResMut<StarSpawnTimer>, time: Res<Time>) {
     star_spawn_timer.timer.tick(time.delta());
+}
+
+pub fn spawn_stars_over_time(
+    mut commands: Commands,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    asset_server: Res<AssetServer>,
+    star_spawn_timer: Res<StarSpawnTimer>
+) {
+    if star_spawn_timer.timer.is_finished() {
+        if let Ok(window) = window_query.single() {
+            let pos_x =
+                random::<f32>() * window.width().clamp(STAR_SIZE, window.width() - STAR_SIZE);
+            let pos_y =
+                random::<f32>() * window.height().clamp(STAR_SIZE, window.height() - STAR_SIZE);
+
+            commands.spawn((
+                Star {},
+                Sprite::from_image(asset_server.load("sprites/star.png")),
+                Transform::from_xyz(pos_x, pos_y, 0.0),
+            ));
+        }
+    }
 }
