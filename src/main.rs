@@ -59,6 +59,12 @@ pub const STAR_SIZE: f32 = 30.0;
 #[derive(Component)]
 pub struct Star {}
 
+#[derive(Bundle)]
+pub struct CollectStarSound {
+    pub audio: AudioPlayer,
+    pub settings: PlaybackSettings,
+}
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
@@ -68,6 +74,7 @@ fn main() {
             (
                 camera_position,
                 player_movement,
+                player_hit_star,
                 confine_player,
                 confine_enemy,
                 update_enemy_direction,
@@ -291,6 +298,30 @@ pub fn enemy_hit_player(
             if distance < player_radius + enemy_radius {
                 commands.entity(player_entity).despawn();
                 commands.spawn(ExplosionSoundPlayer::new(&asset_server));
+            }
+        }
+    }
+}
+
+pub fn player_hit_star(
+    mut commands: Commands,
+    player_query: Query<&Transform, With<Player>>,
+    stars_query: Query<(Entity, &Transform), With<Star>>,
+    asset_serve: Res<AssetServer>
+) {
+    if let Ok(player_transform) = player_query.single() {
+        for (star_entity, star_transform) in stars_query {
+            let distance = player_transform.translation.distance(star_transform.translation);
+
+            let player_radius = PLAYER_SIZE / 2.0;
+            let star_radius = STAR_SIZE / 2.0;
+
+            if distance < player_radius + star_radius {
+                commands.entity(star_entity).despawn();
+                commands.spawn(CollectStarSound {
+                    audio: AudioPlayer(asset_serve.load("audio/laserLarge_000.ogg")),
+                    settings: PlaybackSettings::DESPAWN,
+                });
             }
         }
     }
