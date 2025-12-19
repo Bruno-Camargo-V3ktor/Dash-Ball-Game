@@ -70,14 +70,28 @@ pub struct Score {
     pub value: u32,
 }
 
+pub const STAR_SPAWN_TIME: f32 = 1.0;
+#[derive(Resource)]
+pub struct StarSpawnTimer {
+    pub timer: Timer,
+}
+
+impl Default for StarSpawnTimer {
+    fn default() -> Self {
+        Self { timer: Timer::from_seconds(STAR_SPAWN_TIME, TimerMode::Repeating) }
+    }
+}
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .init_resource::<Score>()
+        .init_resource::<StarSpawnTimer>()
         .add_systems(Startup, (spawn_camera, spawn_player, spawn_enemies, spawn_stars).chain())
         .add_systems(
             Update,
             (
+                tick_star_spawn_timer,
                 camera_position,
                 player_movement,
                 player_hit_star,
@@ -333,4 +347,8 @@ pub fn player_hit_star(
             }
         }
     }
+}
+
+pub fn tick_star_spawn_timer(mut star_spawn_timer: ResMut<StarSpawnTimer>, time: Res<Time>) {
+    star_spawn_timer.timer.tick(time.delta());
 }
