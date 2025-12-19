@@ -65,9 +65,15 @@ pub struct CollectStarSound {
     pub settings: PlaybackSettings,
 }
 
+#[derive(Resource, Default)]
+pub struct Score {
+    pub value: u32,
+}
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .init_resource::<Score>()
         .add_systems(Startup, (spawn_camera, spawn_player, spawn_enemies, spawn_stars).chain())
         .add_systems(
             Update,
@@ -307,7 +313,8 @@ pub fn player_hit_star(
     mut commands: Commands,
     player_query: Query<&Transform, With<Player>>,
     stars_query: Query<(Entity, &Transform), With<Star>>,
-    asset_serve: Res<AssetServer>
+    asset_serve: Res<AssetServer>,
+    mut score: ResMut<Score>
 ) {
     if let Ok(player_transform) = player_query.single() {
         for (star_entity, star_transform) in stars_query {
@@ -322,6 +329,7 @@ pub fn player_hit_star(
                     audio: AudioPlayer(asset_serve.load("audio/laserLarge_000.ogg")),
                     settings: PlaybackSettings::DESPAWN,
                 });
+                score.value += 1;
             }
         }
     }
