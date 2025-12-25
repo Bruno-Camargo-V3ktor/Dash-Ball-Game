@@ -1,4 +1,7 @@
-use bevy::{ prelude::*, window::{ PrimaryWindow, WindowResolution } };
+use bevy::{
+    prelude::*,
+    window::{PrimaryWindow, WindowResolution},
+};
 use rand::random;
 
 pub const PLAYER_SPEED: f32 = 500.0;
@@ -10,7 +13,7 @@ pub struct Player {}
 pub struct ExplosionSoundPlayer {}
 impl ExplosionSoundPlayer {
     pub fn new(
-        asset_serve: &Res<'_, AssetServer>
+        asset_serve: &Res<'_, AssetServer>,
     ) -> (ExplosionSoundPlayer, AudioPlayer, PlaybackSettings) {
         (
             ExplosionSoundPlayer {},
@@ -23,7 +26,7 @@ impl ExplosionSoundPlayer {
     }
 }
 
-pub const NUMBER_OF_ENEMIES: usize = 4;
+pub const NUMBER_OF_ENEMIES: usize = 2;
 pub const ENEMY_SPEED: f32 = 200.0;
 pub const ENEMY_SIZE: f32 = 64.0;
 #[derive(Component)]
@@ -35,7 +38,7 @@ pub struct Enemy {
 pub struct BouncEnemySound {}
 impl BouncEnemySound {
     pub fn new(
-        asset_server: &Res<'_, AssetServer>
+        asset_server: &Res<'_, AssetServer>,
     ) -> (BouncEnemySound, AudioPlayer, PlaybackSettings) {
         let audio = if random::<f32>() < 0.5 {
             asset_server.load("audio/pluck_001.ogg")
@@ -78,7 +81,23 @@ pub struct StarSpawnTimer {
 
 impl Default for StarSpawnTimer {
     fn default() -> Self {
-        Self { timer: Timer::from_seconds(STAR_SPAWN_TIME, TimerMode::Repeating) }
+        Self {
+            timer: Timer::from_seconds(STAR_SPAWN_TIME, TimerMode::Repeating),
+        }
+    }
+}
+
+pub const ENEMY_SPAWN_TIME: f32 = 5.0;
+#[derive(Resource)]
+pub struct EnemySpawnTimer {
+    pub timer: Timer,
+}
+
+impl Default for EnemySpawnTimer {
+    fn default() -> Self {
+        Self {
+            timer: Timer::from_seconds(ENEMY_SPAWN_TIME, TimerMode::Repeating),
+        }
     }
 }
 
@@ -87,7 +106,11 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .init_resource::<Score>()
         .init_resource::<StarSpawnTimer>()
-        .add_systems(Startup, (spawn_camera, spawn_player, spawn_enemies, spawn_stars).chain())
+        .init_resource::<EnemySpawnTimer>()
+        .add_systems(
+            Startup,
+            (spawn_camera, spawn_player, spawn_enemies, spawn_stars).chain(),
+        )
         .add_systems(
             Update,
             (
@@ -101,7 +124,10 @@ fn main() {
                 update_enemy_direction,
                 enemy_movement,
                 enemy_hit_player,
-            ).chain()
+                tick_enemy_spawn_timer,
+                spawn_enemys_over_time,
+            )
+                .chain(),
         )
         .run();
 }
@@ -109,7 +135,7 @@ fn main() {
 pub fn spawn_player(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
-    asset_server: Res<AssetServer>
+    asset_server: Res<AssetServer>,
 ) {
     let window = window_query.single().unwrap();
 
@@ -126,14 +152,16 @@ pub fn spawn_player(
 pub fn spawn_stars(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
-    asset_server: Res<AssetServer>
+    asset_server: Res<AssetServer>,
 ) {
     if let Ok(window) = window_query.single() {
         for _ in 0..NUMBER_OF_STARS {
             let pos_x =
                 random::<f32>() * window.width().clamp(STAR_SIZE, window.width() - STAR_SIZE);
-            let pos_y =
-                random::<f32>() * window.height().clamp(STAR_SIZE, window.height() - STAR_SIZE);
+            let pos_y = random::<f32>()
+                * window
+                    .height()
+                    .clamp(STAR_SIZE, window.height() - STAR_SIZE);
 
             commands.spawn((
                 Star {},
@@ -146,7 +174,7 @@ pub fn spawn_stars(
 
 pub fn spawn_camera(
     mut commands: Commands,
-    mut window_query: Query<&mut Window, With<PrimaryWindow>>
+    mut window_query: Query<&mut Window, With<PrimaryWindow>>,
 ) {
     let mut window = window_query.single_mut().unwrap();
 
@@ -161,7 +189,7 @@ pub fn spawn_camera(
 
 pub fn camera_position(
     mut camera_query: Query<&mut Transform, With<Camera2d>>,
-    window_query: Query<&Window, With<PrimaryWindow>>
+    window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
     if let (Ok(mut camera), Ok(window)) = (camera_query.single_mut(), window_query.single()) {
         camera.translation.x = window.width() / 2.0;
@@ -172,7 +200,7 @@ pub fn camera_position(
 pub fn spawn_enemies(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
-    asset_server: Res<AssetServer>
+    asset_server: Res<AssetServer>,
 ) {
     let window = window_query.single().unwrap();
 
@@ -181,7 +209,9 @@ pub fn spawn_enemies(
         let random_y = random::<f32>() * window.height();
 
         commands.spawn((
-            Enemy { direction: Vec2::new(random::<f32>(), random::<f32>()).normalize() },
+            Enemy {
+                direction: Vec2::new(random::<f32>(), random::<f32>()).normalize(),
+            },
             Sprite {
                 image: asset_server.load("sprites/ball_red_large.png"),
                 ..Default::default()
@@ -194,7 +224,7 @@ pub fn spawn_enemies(
 pub fn player_movement(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut player_query: Query<&mut Transform, With<Player>>,
-    time: Res<Time>
+    time: Res<Time>,
 ) {
     if let Ok(mut transform) = player_query.single_mut() {
         let mut dir = Vec3::ZERO;
@@ -225,13 +255,10 @@ pub fn player_movement(
 
 pub fn confine_player(
     mut player_query: Query<&mut Transform, With<Player>>,
-    window_query: Query<&Window, With<PrimaryWindow>>
+    window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
-    if
-        let (Ok(mut player_transform), Ok(window)) = (
-            player_query.single_mut(),
-            window_query.single(),
-        )
+    if let (Ok(mut player_transform), Ok(window)) =
+        (player_query.single_mut(), window_query.single())
     {
         let half_player_size: f32 = PLAYER_SIZE / 2.0;
         let x_min = 0.0 + half_player_size;
@@ -257,7 +284,7 @@ pub fn update_enemy_direction(
     enemy_query: Query<(&Transform, &mut Enemy)>,
     window_query: Query<&Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
-    mut commands: Commands
+    mut commands: Commands,
 ) {
     if let Ok(window) = window_query.single() {
         let half_enemy_size: f32 = ENEMY_SIZE / 2.0;
@@ -284,7 +311,7 @@ pub fn update_enemy_direction(
 
 pub fn confine_enemy(
     enemy_query: Query<&mut Transform, With<Enemy>>,
-    window_query: Query<&Window, With<PrimaryWindow>>
+    window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
     if let Ok(window) = window_query.single() {
         let half_enemy_size: f32 = ENEMY_SIZE / 2.0;
@@ -307,11 +334,13 @@ pub fn enemy_hit_player(
     mut commands: Commands,
     mut player_query: Query<(Entity, &Transform), With<Player>>,
     enemy_query: Query<&Transform, With<Enemy>>,
-    asset_server: Res<AssetServer>
+    asset_server: Res<AssetServer>,
 ) {
     if let Ok((player_entity, player_transform)) = player_query.single_mut() {
         for enemy_transform in enemy_query {
-            let distance = player_transform.translation.distance(enemy_transform.translation);
+            let distance = player_transform
+                .translation
+                .distance(enemy_transform.translation);
 
             let player_radius = PLAYER_SIZE / 2.0;
             let enemy_radius = ENEMY_SIZE / 2.0;
@@ -329,11 +358,13 @@ pub fn player_hit_star(
     player_query: Query<&Transform, With<Player>>,
     stars_query: Query<(Entity, &Transform), With<Star>>,
     asset_serve: Res<AssetServer>,
-    mut score: ResMut<Score>
+    mut score: ResMut<Score>,
 ) {
     if let Ok(player_transform) = player_query.single() {
         for (star_entity, star_transform) in stars_query {
-            let distance = player_transform.translation.distance(star_transform.translation);
+            let distance = player_transform
+                .translation
+                .distance(star_transform.translation);
 
             let player_radius = PLAYER_SIZE / 2.0;
             let star_radius = STAR_SIZE / 2.0;
@@ -358,14 +389,16 @@ pub fn spawn_stars_over_time(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
-    star_spawn_timer: Res<StarSpawnTimer>
+    star_spawn_timer: Res<StarSpawnTimer>,
 ) {
     if star_spawn_timer.timer.is_finished() {
         if let Ok(window) = window_query.single() {
             let pos_x =
                 random::<f32>() * window.width().clamp(STAR_SIZE, window.width() - STAR_SIZE);
-            let pos_y =
-                random::<f32>() * window.height().clamp(STAR_SIZE, window.height() - STAR_SIZE);
+            let pos_y = random::<f32>()
+                * window
+                    .height()
+                    .clamp(STAR_SIZE, window.height() - STAR_SIZE);
 
             commands.spawn((
                 Star {},
@@ -373,5 +406,34 @@ pub fn spawn_stars_over_time(
                 Transform::from_xyz(pos_x, pos_y, 0.0),
             ));
         }
+    }
+}
+
+pub fn tick_enemy_spawn_timer(mut enemy_spawn_timer: ResMut<EnemySpawnTimer>, time: Res<Time>) {
+    enemy_spawn_timer.timer.tick(time.delta());
+}
+
+pub fn spawn_enemys_over_time(
+    mut commands: Commands,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    asset_server: Res<AssetServer>,
+    enemy_spawn_timer: Res<EnemySpawnTimer>,
+) {
+    if enemy_spawn_timer.timer.is_finished() {
+        let window = window_query.single().unwrap();
+
+        let random_x = random::<f32>() * window.width();
+        let random_y = random::<f32>() * window.height();
+
+        commands.spawn((
+            Enemy {
+                direction: Vec2::new(random::<f32>(), random::<f32>()).normalize(),
+            },
+            Sprite {
+                image: asset_server.load("sprites/ball_red_large.png"),
+                ..Default::default()
+            },
+            Transform::from_xyz(random_x, random_y, 0.0),
+        ));
     }
 }
