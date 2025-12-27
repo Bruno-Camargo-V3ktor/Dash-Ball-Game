@@ -73,6 +73,11 @@ pub struct Score {
     pub value: u32,
 }
 
+#[derive(Resource, Default)]
+pub struct HighScores {
+    pub scores: Vec<(String, u32)>,
+}
+
 pub const STAR_SPAWN_TIME: f32 = 3.0;
 #[derive(Resource)]
 pub struct StarSpawnTimer {
@@ -110,6 +115,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .init_resource::<Score>()
+        .init_resource::<HighScores>()
         .init_resource::<StarSpawnTimer>()
         .init_resource::<EnemySpawnTimer>()
         .add_message::<GameOver>()
@@ -134,6 +140,7 @@ fn main() {
                 enemy_hit_player,
                 tick_enemy_spawn_timer,
                 spawn_enemys_over_time,
+                update_high_scores,
             )
                 .chain(),
         )
@@ -457,6 +464,18 @@ pub fn exit_game(keyboard_input: Res<ButtonInput<KeyCode>>, mut commands: Comman
 
 pub fn handle_game_over(mut gameover_reader: MessageReader<GameOver>) {
     for game_over in gameover_reader.read() {
-        println!("Voce perdeu: {}", game_over.score);
+        println!("Game Over: {}", game_over.score);
+    }
+}
+
+pub fn update_high_scores(
+    mut gameover_reader: MessageReader<GameOver>,
+    mut high_scores: ResMut<HighScores>,
+) {
+    for game_over in gameover_reader.read() {
+        high_scores
+            .scores
+            .push(("Player".to_string(), game_over.score));
+        println!("{:?}", ("Player".to_string(), game_over.score));
     }
 }
