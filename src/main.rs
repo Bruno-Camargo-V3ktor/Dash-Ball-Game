@@ -114,6 +114,7 @@ fn main() {
         .add_systems(
             Update,
             (
+                exit_game,
                 tick_star_spawn_timer,
                 spawn_stars_over_time,
                 camera_position,
@@ -435,5 +436,11 @@ pub fn spawn_enemys_over_time(
             },
             Transform::from_xyz(random_x, random_y, 0.0),
         ));
+    }
+}
+
+pub fn exit_game(keyboard_input: Res<ButtonInput<KeyCode>>, mut commands: Commands) {
+    if keyboard_input.just_pressed(KeyCode::Escape) {
+        commands.write_message(AppExit::Success);
     }
 }
