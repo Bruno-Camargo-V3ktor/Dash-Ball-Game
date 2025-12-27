@@ -1,11 +1,16 @@
 use crate::{
-    resources::timers::{EnemySpawnTimer, StarSpawnTimer},
+    messages::game_states::GameOver,
+    resources::{
+        score::{HighScores, Score},
+        timers::{EnemySpawnTimer, StarSpawnTimer},
+    },
     systems::{
         camera::{camera_position, spawn_camera},
         enemy::{
             confine_enemy, enemy_hit_player, enemy_movement, spawn_enemies, spawn_enemys_over_time,
             update_enemy_direction,
         },
+        game_state::{exit_game, handle_game_over, update_high_scores},
         player::{confine_player, player_hit_star, player_movement, spawn_player},
         star::{spawn_stars, spawn_stars_over_time},
         timers::{tick_enemy_spawn_timer, tick_star_spawn_timer},
@@ -66,5 +71,18 @@ impl Plugin for TimersPlugin {
             Update,
             (tick_star_spawn_timer, tick_enemy_spawn_timer).chain(),
         );
+    }
+}
+
+pub struct GameStatePlugin;
+impl Plugin for GameStatePlugin {
+    fn build(&self, app: &mut App) {
+        app.init_resource::<Score>()
+            .init_resource::<HighScores>()
+            .add_message::<GameOver>()
+            .add_systems(
+                Update,
+                (exit_game, handle_game_over, update_high_scores).chain(),
+            );
     }
 }
