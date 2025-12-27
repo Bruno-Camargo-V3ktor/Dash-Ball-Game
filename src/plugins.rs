@@ -1,5 +1,5 @@
 use crate::{
-    resources::timers::EnemySpawnTimer,
+    resources::timers::{EnemySpawnTimer, StarSpawnTimer},
     systems::{
         camera::{camera_position, spawn_camera},
         enemy::{
@@ -7,6 +7,8 @@ use crate::{
             update_enemy_direction,
         },
         player::{confine_player, player_hit_star, player_movement, spawn_player},
+        star::{spawn_stars, spawn_stars_over_time},
+        timers::{tick_enemy_spawn_timer, tick_star_spawn_timer},
     },
 };
 use bevy::prelude::*;
@@ -45,5 +47,24 @@ impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn_camera)
             .add_systems(Update, camera_position);
+    }
+}
+
+pub struct StarPlugin;
+impl Plugin for StarPlugin {
+    fn build(&self, app: &mut App) {
+        app.init_resource::<StarSpawnTimer>()
+            .add_systems(Startup, spawn_stars)
+            .add_systems(Update, spawn_stars_over_time);
+    }
+}
+
+pub struct TimersPlugin;
+impl Plugin for TimersPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            Update,
+            (tick_star_spawn_timer, tick_enemy_spawn_timer).chain(),
+        );
     }
 }
