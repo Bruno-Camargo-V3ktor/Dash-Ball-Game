@@ -101,12 +101,18 @@ impl Default for EnemySpawnTimer {
     }
 }
 
+#[derive(Message)]
+pub struct GameOver {
+    pub score: u32,
+}
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .init_resource::<Score>()
         .init_resource::<StarSpawnTimer>()
         .init_resource::<EnemySpawnTimer>()
+        .add_message::<GameOver>()
         .add_systems(
             Startup,
             (spawn_camera, spawn_player, spawn_enemies, spawn_stars).chain(),
@@ -115,6 +121,7 @@ fn main() {
             Update,
             (
                 exit_game,
+                handle_game_over,
                 tick_star_spawn_timer,
                 spawn_stars_over_time,
                 camera_position,
@@ -333,9 +340,11 @@ pub fn confine_enemy(
 
 pub fn enemy_hit_player(
     mut commands: Commands,
+    mut gameover_writer: MessageWriter<GameOver>,
     mut player_query: Query<(Entity, &Transform), With<Player>>,
     enemy_query: Query<&Transform, With<Enemy>>,
     asset_server: Res<AssetServer>,
+    score: Res<Score>,
 ) {
     if let Ok((player_entity, player_transform)) = player_query.single_mut() {
         for enemy_transform in enemy_query {
@@ -349,6 +358,7 @@ pub fn enemy_hit_player(
             if distance < player_radius + enemy_radius {
                 commands.entity(player_entity).despawn();
                 commands.spawn(ExplosionSoundPlayer::new(&asset_server));
+                gameover_writer.write(GameOver { score: score.value });
             }
         }
     }
@@ -442,5 +452,11 @@ pub fn spawn_enemys_over_time(
 pub fn exit_game(keyboard_input: Res<ButtonInput<KeyCode>>, mut commands: Commands) {
     if keyboard_input.just_pressed(KeyCode::Escape) {
         commands.write_message(AppExit::Success);
+    }
+}
+
+pub fn handle_game_over(mut gameover_reader: MessageReader<GameOver>) {
+    for game_over in gameover_reader.read() {
+        println!("Voce perdeu: {}", game_over.score);
     }
 }
