@@ -5,6 +5,7 @@ use systems::{camera::*, enemy::*, game_state::*, player::*, star::*, timers::*}
 
 mod components;
 mod messages;
+mod plugins;
 mod resources;
 mod systems;
 
