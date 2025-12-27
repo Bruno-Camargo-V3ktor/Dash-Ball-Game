@@ -3,16 +3,13 @@ use bevy::{
     window::{PrimaryWindow, WindowResolution},
 };
 use components::{enemy::*, player::*, star::*};
+use messages::game_states::*;
 use rand::random;
 use resources::{score::*, timers::*};
 
 mod components;
+mod messages;
 mod resources;
-
-#[derive(Message)]
-pub struct GameOver {
-    pub score: u32,
-}
 
 fn main() {
     App::new()
