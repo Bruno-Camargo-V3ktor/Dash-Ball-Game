@@ -11,7 +11,7 @@ use crate::{
             update_enemy_direction,
         },
         game_state::{exit_game, handle_game_over, update_high_scores},
-        player::{confine_player, player_hit_star, player_movement, spawn_player},
+        player::{PlayerStateSet, confine_player, player_hit_star, player_movement, spawn_player},
         star::{spawn_stars, spawn_stars_over_time},
         timers::{tick_enemy_spawn_timer, tick_star_spawn_timer},
     },
@@ -40,10 +40,14 @@ impl Plugin for EnemyPlugin {
 pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_player).add_systems(
-            Update,
-            (player_movement, player_hit_star, confine_player).chain(),
-        );
+        app.add_systems(Startup, spawn_player)
+            .add_systems(Update, player_hit_star)
+            .configure_sets(
+                Update,
+                (PlayerStateSet::Movement, PlayerStateSet::Confine).chain(),
+            )
+            .add_systems(Update, player_movement.in_set(PlayerStateSet::Movement))
+            .add_systems(Update, confine_player.in_set(PlayerStateSet::Confine));
     }
 }
 

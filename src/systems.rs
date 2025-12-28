@@ -8,6 +8,12 @@ pub mod player {
     };
     use bevy::{prelude::*, window::PrimaryWindow};
 
+    #[derive(SystemSet, Debug, Clone, Hash, PartialEq, Eq)]
+    pub enum PlayerStateSet {
+        Movement,
+        Confine,
+    }
+
     pub fn spawn_player(
         mut commands: Commands,
         window_query: Query<&Window, With<PrimaryWindow>>,
