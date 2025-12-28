@@ -1,20 +1,12 @@
 use bevy::prelude::*;
-use plugins::*;
 
-mod components;
-mod messages;
-mod plugins;
-mod resources;
-mod systems;
+mod game;
+mod main_menu;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins(GameStatePlugin)
-        .add_plugins(TimersPlugin)
-        .add_plugins(CameraPlugin)
-        .add_plugins(PlayerPlugin)
-        .add_plugins(EnemyPlugin)
-        .add_plugins(StarPlugin)
+        .add_plugins(game::GamePlugin)
+        .add_plugins(main_menu::MainMenuPlugin)
         .run();
 }

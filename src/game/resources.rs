@@ -13,7 +13,7 @@ pub mod score {
 }
 
 pub mod timers {
-    use crate::components::{enemy::ENEMY_SPAWN_TIME, star::STAR_SPAWN_TIME};
+    use super::super::components::{enemy::ENEMY_SPAWN_TIME, star::STAR_SPAWN_TIME};
     use bevy::prelude::*;
 
     #[derive(Resource)]

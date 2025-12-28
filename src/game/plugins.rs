@@ -1,4 +1,4 @@
-use crate::{
+use super::{
     messages::game_states::GameOver,
     resources::{
         score::{HighScores, Score},

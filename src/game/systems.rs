@@ -1,5 +1,5 @@
 pub mod player {
-    use crate::{
+    use super::super::{
         components::{
             player::{PLAYER_SIZE, PLAYER_SPEED, Player},
             star::{CollectStarSound, STAR_SIZE, Star},
@@ -114,7 +114,7 @@ pub mod player {
 }
 
 pub mod star {
-    use crate::{
+    use super::super::{
         components::star::{NUMBER_OF_STARS, STAR_SIZE, Star},
         resources::timers::StarSpawnTimer,
     };
@@ -170,7 +170,7 @@ pub mod star {
 }
 
 pub mod enemy {
-    use crate::{
+    use super::super::{
         components::{
             enemy::*,
             player::{ExplosionSoundPlayer, PLAYER_SIZE, Player},
@@ -347,7 +347,7 @@ pub mod camera {
 }
 
 pub mod timers {
-    use crate::resources::timers::{EnemySpawnTimer, StarSpawnTimer};
+    use super::super::resources::timers::{EnemySpawnTimer, StarSpawnTimer};
     use bevy::prelude::*;
 
     pub fn tick_star_spawn_timer(mut star_spawn_timer: ResMut<StarSpawnTimer>, time: Res<Time>) {
@@ -360,8 +360,8 @@ pub mod timers {
 }
 
 pub mod game_state {
-    use crate::messages::game_states::GameOver;
-    use crate::resources::score::HighScores;
+    use super::super::messages::game_states::GameOver;
+    use super::super::resources::score::HighScores;
     use bevy::prelude::*;
 
     pub fn exit_game(keyboard_input: Res<ButtonInput<KeyCode>>, mut commands: Commands) {
