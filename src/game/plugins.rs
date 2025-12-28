@@ -1,20 +1,12 @@
+use crate::AppState;
+
 use super::{
     messages::game_states::GameOver,
     resources::{
         score::{HighScores, Score},
         timers::{EnemySpawnTimer, StarSpawnTimer},
     },
-    systems::{
-        camera::{camera_position, spawn_camera},
-        enemy::{
-            confine_enemy, enemy_hit_player, enemy_movement, spawn_enemies, spawn_enemys_over_time,
-            update_enemy_direction,
-        },
-        game_state::{exit_game, handle_game_over, update_high_scores},
-        player::{PlayerStateSet, confine_player, player_hit_star, player_movement, spawn_player},
-        star::{spawn_stars, spawn_stars_over_time},
-        timers::{tick_enemy_spawn_timer, tick_star_spawn_timer},
-    },
+    systems::{camera::*, enemy::*, game_state::*, player::*, star::*, timers::*},
 };
 use bevy::prelude::*;
 
@@ -86,7 +78,13 @@ impl Plugin for GameStatePlugin {
             .add_message::<GameOver>()
             .add_systems(
                 Update,
-                (exit_game, handle_game_over, update_high_scores).chain(),
+                (
+                    exit_game,
+                    handle_game_over,
+                    update_high_scores,
+                    toggle_game_simulation.run_if(in_state(AppState::Game)),
+                    transition_to_main_menu.run_if(in_state(AppState::Game)),
+                ),
             );
     }
 }

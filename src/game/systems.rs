@@ -360,8 +360,11 @@ pub mod timers {
 }
 
 pub mod game_state {
+    use crate::AppState;
+
     use super::super::messages::game_states::GameOver;
     use super::super::resources::score::HighScores;
+    use super::super::states::SimulationState;
     use bevy::prelude::*;
 
     pub fn exit_game(keyboard_input: Res<ButtonInput<KeyCode>>, mut commands: Commands) {
@@ -385,6 +388,33 @@ pub mod game_state {
                 .scores
                 .push(("Player".to_string(), game_over.score));
             println!("{:?}", ("Player".to_string(), game_over.score));
+        }
+    }
+
+    pub fn toggle_game_simulation(
+        state: Res<State<SimulationState>>,
+        mut change_state: ResMut<NextState<SimulationState>>,
+        keyboard_input: Res<ButtonInput<KeyCode>>,
+    ) {
+        if keyboard_input.just_pressed(KeyCode::Space) {
+            match state.get() {
+                SimulationState::GamePaused => {
+                    change_state.set(SimulationState::GameRunning);
+                }
+                SimulationState::GameRunning => {
+                    change_state.set(SimulationState::GamePaused);
+                }
+            }
+        }
+    }
+
+    pub fn transition_to_main_menu(
+        state: Res<State<AppState>>,
+        mut change_state: ResMut<NextState<AppState>>,
+        keyboard_input: Res<ButtonInput<KeyCode>>,
+    ) {
+        if keyboard_input.just_pressed(KeyCode::Backspace) && *state.get() == AppState::Game {
+            change_state.set(AppState::MainMenu);
         }
     }
 }

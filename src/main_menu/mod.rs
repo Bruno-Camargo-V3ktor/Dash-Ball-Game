@@ -1,10 +1,14 @@
 use bevy::prelude::*;
+use plugins::*;
+
+mod plugins;
+mod systems;
 
 pub struct MainMenuPlugin;
-
 impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, hello_main_menu);
+        app.add_plugins(MainMenuStatePlugin)
+            .add_systems(Startup, hello_main_menu);
     }
 }
 
