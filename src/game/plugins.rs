@@ -95,6 +95,7 @@ impl Plugin for GameStatePlugin {
         app.init_resource::<Score>()
             .init_resource::<HighScores>()
             .add_message::<GameOver>()
+            .add_systems(OnEnter(AppState::Game), insert_score)
             .add_systems(
                 Update,
                 (
@@ -105,6 +106,7 @@ impl Plugin for GameStatePlugin {
                     transition_to_main_menu,
                 )
                     .run_if(in_state(AppState::Game)),
-            );
+            )
+            .add_systems(OnExit(AppState::Game), remove_score);
     }
 }

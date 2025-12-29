@@ -379,6 +379,7 @@ pub mod timers {
 
 pub mod game_state {
     use crate::AppState;
+    use crate::game::resources::score::Score;
 
     use super::super::messages::game_states::GameOver;
     use super::super::resources::score::HighScores;
@@ -427,12 +428,22 @@ pub mod game_state {
     }
 
     pub fn transition_to_main_menu(
-        state: Res<State<AppState>>,
-        mut change_state: ResMut<NextState<AppState>>,
+        app_state: Res<State<AppState>>,
+        mut change_app_state: ResMut<NextState<AppState>>,
+        mut change_game_state: ResMut<NextState<SimulationState>>,
         keyboard_input: Res<ButtonInput<KeyCode>>,
     ) {
-        if keyboard_input.just_pressed(KeyCode::Backspace) && *state.get() == AppState::Game {
-            change_state.set(AppState::MainMenu);
+        if keyboard_input.just_pressed(KeyCode::Backspace) && *app_state.get() == AppState::Game {
+            change_app_state.set(AppState::MainMenu);
+            change_game_state.set(SimulationState::GamePaused);
         }
+    }
+
+    pub fn insert_score(mut commands: Commands) {
+        commands.insert_resource(Score::default());
+    }
+
+    pub fn remove_score(mut commands: Commands) {
+        commands.remove_resource::<Score>();
     }
 }
