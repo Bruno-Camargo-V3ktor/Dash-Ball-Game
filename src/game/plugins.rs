@@ -34,14 +34,22 @@ impl Plugin for EnemyPlugin {
 pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_player)
-            .add_systems(Update, player_hit_star)
-            .configure_sets(
-                Update,
-                (PlayerStateSet::Movement, PlayerStateSet::Confine).chain(),
+        app.configure_sets(
+            Update,
+            (PlayerStateSet::Movement, PlayerStateSet::Confine).chain(),
+        )
+        .add_systems(OnEnter(AppState::Game), spawn_player)
+        .add_systems(
+            Update,
+            (
+                player_hit_star,
+                player_movement.in_set(PlayerStateSet::Movement),
+                confine_player.in_set(PlayerStateSet::Confine),
             )
-            .add_systems(Update, player_movement.in_set(PlayerStateSet::Movement))
-            .add_systems(Update, confine_player.in_set(PlayerStateSet::Confine));
+                .run_if(in_state(AppState::Game))
+                .run_if(in_state(SimulationState::GameRunning)),
+        )
+        .add_systems(OnExit(AppState::Game), despawn_player);
     }
 }
 

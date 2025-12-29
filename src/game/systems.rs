@@ -31,6 +31,12 @@ pub mod player {
         ));
     }
 
+    pub fn despawn_player(mut commands: Commands, player_query: Query<Entity, With<Player>>) {
+        for entity in player_query {
+            commands.entity(entity).despawn();
+        }
+    }
+
     pub fn player_movement(
         keyboard_input: Res<ButtonInput<KeyCode>>,
         mut player_query: Query<&mut Transform, With<Player>>,
