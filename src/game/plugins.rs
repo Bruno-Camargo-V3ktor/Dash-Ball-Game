@@ -103,10 +103,10 @@ impl Plugin for GameStatePlugin {
                     handle_game_over,
                     update_high_scores,
                     toggle_game_simulation,
-                    transition_to_main_menu,
                 )
                     .run_if(in_state(AppState::Game)),
             )
+            .add_systems(Update, transition_to_main_menu)
             .add_systems(OnExit(AppState::Game), remove_score);
     }
 }

@@ -392,9 +392,13 @@ pub mod game_state {
         }
     }
 
-    pub fn handle_game_over(mut gameover_reader: MessageReader<GameOver>) {
+    pub fn handle_game_over(
+        mut gameover_reader: MessageReader<GameOver>,
+        mut change_app_state: ResMut<NextState<AppState>>,
+    ) {
         for game_over in gameover_reader.read() {
             println!("Game Over: {}", game_over.score);
+            change_app_state.set(AppState::GameOver);
         }
     }
 
@@ -433,7 +437,8 @@ pub mod game_state {
         mut change_game_state: ResMut<NextState<SimulationState>>,
         keyboard_input: Res<ButtonInput<KeyCode>>,
     ) {
-        if keyboard_input.just_pressed(KeyCode::Backspace) && *app_state.get() == AppState::Game {
+        if keyboard_input.just_pressed(KeyCode::Backspace) && *app_state.get() != AppState::MainMenu
+        {
             change_app_state.set(AppState::MainMenu);
             change_game_state.set(SimulationState::GamePaused);
         }
