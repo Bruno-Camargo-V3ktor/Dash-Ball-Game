@@ -205,6 +205,12 @@ pub mod enemy {
         }
     }
 
+    pub fn despawn_enemys(mut commands: Commands, enemys_query: Query<Entity, With<Enemy>>) {
+        for entity in enemys_query {
+            commands.entity(entity).despawn();
+        }
+    }
+
     pub fn enemy_movement(enemy_query: Query<(&mut Transform, &Enemy)>, time: Res<Time>) {
         for (mut transform, enemy) in enemy_query {
             let dir = Vec3::new(enemy.direction.x, enemy.direction.y, 0.0);

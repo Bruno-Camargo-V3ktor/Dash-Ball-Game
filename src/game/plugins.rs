@@ -1,5 +1,3 @@
-use crate::AppState;
-
 use super::{
     messages::game_states::GameOver,
     resources::{
@@ -8,13 +6,14 @@ use super::{
     },
     systems::{camera::*, enemy::*, game_state::*, player::*, star::*, timers::*},
 };
+use crate::{AppState, game::states::SimulationState};
 use bevy::prelude::*;
 
 pub struct EnemyPlugin;
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<EnemySpawnTimer>()
-            .add_systems(Startup, spawn_enemies)
+            .add_systems(OnEnter(AppState::Game), spawn_enemies)
             .add_systems(
                 Update,
                 (
@@ -24,8 +23,11 @@ impl Plugin for EnemyPlugin {
                     enemy_hit_player,
                     spawn_enemys_over_time,
                 )
-                    .chain(),
-            );
+                    .chain()
+                    .run_if(in_state(AppState::Game))
+                    .run_if(in_state(SimulationState::GameRunning)),
+            )
+            .add_systems(OnExit(AppState::Game), despawn_enemys);
     }
 }
 
