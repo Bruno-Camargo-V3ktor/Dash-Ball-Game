@@ -65,8 +65,14 @@ pub struct StarPlugin;
 impl Plugin for StarPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<StarSpawnTimer>()
-            .add_systems(Startup, spawn_stars)
-            .add_systems(Update, spawn_stars_over_time);
+            .add_systems(OnEnter(AppState::Game), spawn_stars)
+            .add_systems(
+                Update,
+                spawn_stars_over_time
+                    .run_if(in_state(AppState::Game))
+                    .run_if(in_state(SimulationState::GameRunning)),
+            )
+            .add_systems(OnExit(AppState::Game), despawn_stars);
     }
 }
 
@@ -75,7 +81,10 @@ impl Plugin for TimersPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (tick_star_spawn_timer, tick_enemy_spawn_timer).chain(),
+            (tick_star_spawn_timer, tick_enemy_spawn_timer)
+                .chain()
+                .run_if(in_state(AppState::Game))
+                .run_if(in_state(SimulationState::GameRunning)),
         );
     }
 }
@@ -92,9 +101,10 @@ impl Plugin for GameStatePlugin {
                     exit_game,
                     handle_game_over,
                     update_high_scores,
-                    toggle_game_simulation.run_if(in_state(AppState::Game)),
-                    transition_to_main_menu.run_if(in_state(AppState::Game)),
-                ),
+                    toggle_game_simulation,
+                    transition_to_main_menu,
+                )
+                    .run_if(in_state(AppState::Game)),
             );
     }
 }

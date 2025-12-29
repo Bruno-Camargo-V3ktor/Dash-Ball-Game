@@ -150,6 +150,12 @@ pub mod star {
         }
     }
 
+    pub fn despawn_stars(mut commands: Commands, stars_query: Query<Entity, With<Star>>) {
+        for entity in stars_query {
+            commands.entity(entity).despawn();
+        }
+    }
+
     pub fn spawn_stars_over_time(
         mut commands: Commands,
         window_query: Query<&Window, With<PrimaryWindow>>,
