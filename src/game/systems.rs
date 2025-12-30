@@ -440,7 +440,7 @@ pub mod game_state {
         if keyboard_input.just_pressed(KeyCode::Backspace) && *app_state.get() != AppState::MainMenu
         {
             change_app_state.set(AppState::MainMenu);
-            change_game_state.set(SimulationState::GamePaused);
+            change_game_state.set(SimulationState::GameRunning);
         }
     }
 
