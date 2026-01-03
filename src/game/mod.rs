@@ -14,6 +14,7 @@ pub struct GamePlugin;
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         app.init_state::<SimulationState>()
+            .add_plugins(UIPlugin)
             .add_plugins(GameStatePlugin)
             .add_plugins(TimersPlugin)
             .add_plugins(CameraPlugin)

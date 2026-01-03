@@ -78,3 +78,18 @@ pub mod star {
         pub settings: PlaybackSettings,
     }
 }
+
+pub mod ui {
+    pub mod hud {
+        use bevy::prelude::*;
+
+        #[derive(Component)]
+        pub struct HUD;
+
+        #[derive(Component)]
+        pub struct Score;
+
+        #[derive(Component)]
+        pub struct Enemy;
+    }
+}

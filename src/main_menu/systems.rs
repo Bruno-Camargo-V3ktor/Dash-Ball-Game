@@ -63,7 +63,7 @@ pub mod layout {
                     .with_children(|p| {
                         // Image
                         p.spawn(ImageNode {
-                            image: asset_server.load("sprites/star.png"),
+                            image: asset_server.load("sprites/ball_blue_large.png"),
                             ..default()
                         });
 
@@ -72,7 +72,7 @@ pub mod layout {
 
                         //Image
                         p.spawn(ImageNode {
-                            image: asset_server.load("sprites/star.png"),
+                            image: asset_server.load("sprites/ball_red_large.png"),
                             ..default()
                         });
                     });

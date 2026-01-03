@@ -452,3 +452,137 @@ pub mod game_state {
         commands.remove_resource::<Score>();
     }
 }
+
+pub mod ui {
+    pub mod hud {
+        use super::super::super::components::ui::hud::*;
+        use super::super::super::components::*;
+        use super::super::super::resources;
+        use bevy::prelude::*;
+
+        pub fn spawn_hud(mut commands: Commands, asset_server: Res<AssetServer>) {
+            commands
+                .spawn((
+                    HUD,
+                    Node {
+                        width: Val::Percent(100.0),
+                        height: Val::Percent(100.0),
+                        flex_direction: FlexDirection::Row,
+                        justify_content: JustifyContent::SpaceBetween,
+
+                        ..Default::default()
+                    },
+                ))
+                .with_children(|p| {
+                    p.spawn((
+                        Node {
+                            width: Val::Px(150.0),
+                            height: Val::Px(80.0),
+
+                            margin: UiRect::all(Val::Px(32.0)),
+
+                            flex_direction: FlexDirection::Row,
+                            justify_content: JustifyContent::SpaceAround,
+                            align_items: AlignItems::Center,
+
+                            ..Default::default()
+                        },
+                        BackgroundColor(Color::linear_rgba(0.15, 0.15, 0.15, 0.5)),
+                    ))
+                    .with_children(|p| {
+                        p.spawn(Node {
+                            width: Val::Px(32.0),
+                            height: Val::Px(32.0),
+                            ..Default::default()
+                        })
+                        .with_child((ImageNode {
+                            image: asset_server.load("sprites/star.png"),
+                            ..Default::default()
+                        },));
+
+                        p.spawn((
+                            Score,
+                            Text("0".into()),
+                            TextLayout {
+                                justify: Justify::Center,
+                                linebreak: LineBreak::NoWrap,
+                            },
+                            TextFont {
+                                font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                                font_size: 48.0,
+                                ..Default::default()
+                            },
+                            TextColor::WHITE,
+                        ));
+                    });
+
+                    p.spawn((
+                        Node {
+                            width: Val::Px(150.0),
+                            height: Val::Px(80.0),
+
+                            margin: UiRect::all(Val::Px(32.0)),
+
+                            flex_direction: FlexDirection::Row,
+                            justify_content: JustifyContent::SpaceAround,
+                            align_items: AlignItems::Center,
+
+                            ..Default::default()
+                        },
+                        BackgroundColor(Color::linear_rgba(0.15, 0.15, 0.15, 0.5)),
+                    ))
+                    .with_children(|p| {
+                        p.spawn(Node {
+                            width: Val::Px(32.0),
+                            height: Val::Px(32.0),
+                            ..Default::default()
+                        })
+                        .with_child((ImageNode {
+                            image: asset_server.load("sprites/ball_red_large.png"),
+                            ..Default::default()
+                        },));
+
+                        p.spawn((
+                            Enemy,
+                            Text("0".into()),
+                            TextLayout {
+                                justify: Justify::Center,
+                                linebreak: LineBreak::NoWrap,
+                            },
+                            TextFont {
+                                font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                                font_size: 48.0,
+                                ..Default::default()
+                            },
+                            TextColor::WHITE,
+                        ));
+                    });
+                });
+        }
+
+        pub fn despawn_hud(mut commands: Commands, hud_query: Query<Entity, With<HUD>>) {
+            let hud = hud_query.single().unwrap();
+            commands.entity(hud).despawn();
+        }
+
+        pub fn update_score_text(
+            mut text_score: Query<&mut Text, With<Score>>,
+            score: Res<resources::score::Score>,
+        ) {
+            if let Ok(mut text) = text_score.single_mut() {
+                let score = score.value;
+                text.0 = format!("{score}");
+            }
+        }
+
+        pub fn update_enemys_text(
+            mut text_enemy: Query<&mut Text, With<Enemy>>,
+            enemys_query: Query<Entity, With<enemy::Enemy>>,
+        ) {
+            if let Ok(mut text) = text_enemy.single_mut() {
+                let len = enemys_query.iter().len();
+                text.0 = format!("{len}");
+            }
+        }
+    }
+}

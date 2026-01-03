@@ -4,7 +4,7 @@ use super::{
         score::{HighScores, Score},
         timers::{EnemySpawnTimer, StarSpawnTimer},
     },
-    systems::{camera::*, enemy::*, game_state::*, player::*, star::*, timers::*},
+    systems::{camera::*, enemy::*, game_state::*, player::*, star::*, timers::*, ui::*},
 };
 use crate::{AppState, game::states::SimulationState};
 use bevy::prelude::*;
@@ -108,5 +108,17 @@ impl Plugin for GameStatePlugin {
             )
             .add_systems(Update, transition_to_main_menu)
             .add_systems(OnExit(AppState::Game), remove_score);
+    }
+}
+
+pub struct UIPlugin;
+impl Plugin for UIPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(OnEnter(AppState::Game), hud::spawn_hud)
+            .add_systems(OnExit(AppState::Game), hud::despawn_hud)
+            .add_systems(
+                Update,
+                (hud::update_score_text, hud::update_enemys_text).run_if(in_state(AppState::Game)),
+            );
     }
 }
