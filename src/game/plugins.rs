@@ -138,6 +138,15 @@ impl Plugin for UIPlugin {
                     pause_menu::interact_with_quit_button,
                 )
                     .run_if(in_state(SimulationState::GamePaused)),
+            )
+            .add_systems(
+                Update,
+                (
+                    gameover::interact_with_restart_button,
+                    gameover::interact_with_main_menu_button,
+                    gameover::interact_with_quit_button,
+                )
+                    .run_if(in_state(AppState::GameOver)),
             );
     }
 }

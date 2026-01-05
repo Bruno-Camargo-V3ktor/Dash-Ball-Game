@@ -887,5 +887,78 @@ pub mod ui {
                 TextColor::WHITE,
             )
         }
+
+        pub fn interact_with_restart_button(
+            mut button_query: Query<
+                (&Interaction, &mut BackgroundColor),
+                (Changed<Interaction>, With<ButtonRestart>),
+            >,
+            mut changed_app_state: ResMut<NextState<AppState>>,
+            mut changed_game_state: ResMut<NextState<SimulationState>>,
+        ) {
+            if let Ok((interaction, mut background)) = button_query.single_mut() {
+                match *interaction {
+                    Interaction::Hovered => {
+                        background.0 = HOVERED_BUTTON_COLOR;
+                    }
+                    Interaction::Pressed => {
+                        background.0 = PRESSED_BUTTON_COLOR;
+                        changed_game_state.set(SimulationState::GameRunning);
+                        changed_app_state.set(AppState::Game);
+                    }
+                    Interaction::None => {
+                        background.0 = NORMAL_BUTTON_COLOR;
+                    }
+                }
+            }
+        }
+
+        pub fn interact_with_main_menu_button(
+            mut button_query: Query<
+                (&Interaction, &mut BackgroundColor),
+                (Changed<Interaction>, With<ButtonMainMenu>),
+            >,
+            mut changed_app_state: ResMut<NextState<AppState>>,
+            mut changed_game_state: ResMut<NextState<SimulationState>>,
+        ) {
+            if let Ok((interaction, mut background)) = button_query.single_mut() {
+                match *interaction {
+                    Interaction::Hovered => {
+                        background.0 = HOVERED_BUTTON_COLOR;
+                    }
+                    Interaction::Pressed => {
+                        background.0 = PRESSED_BUTTON_COLOR;
+                        changed_game_state.set(SimulationState::GameRunning);
+                        changed_app_state.set(AppState::MainMenu);
+                    }
+                    Interaction::None => {
+                        background.0 = NORMAL_BUTTON_COLOR;
+                    }
+                }
+            }
+        }
+
+        pub fn interact_with_quit_button(
+            mut button_query: Query<
+                (&Interaction, &mut BackgroundColor),
+                (Changed<Interaction>, With<ButtonQuit>),
+            >,
+            mut commands: Commands,
+        ) {
+            if let Ok((interaction, mut background)) = button_query.single_mut() {
+                match *interaction {
+                    Interaction::Hovered => {
+                        background.0 = HOVERED_BUTTON_COLOR;
+                    }
+                    Interaction::Pressed => {
+                        background.0 = PRESSED_BUTTON_COLOR;
+                        commands.write_message(AppExit::Success);
+                    }
+                    Interaction::None => {
+                        background.0 = NORMAL_BUTTON_COLOR;
+                    }
+                }
+            }
+        }
     }
 }
