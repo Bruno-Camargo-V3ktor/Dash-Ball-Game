@@ -92,4 +92,20 @@ pub mod ui {
         #[derive(Component)]
         pub struct Enemy;
     }
+
+    pub mod pause_menu {
+        use bevy::prelude::*;
+
+        #[derive(Component)]
+        pub struct PauseMenuContainer;
+
+        #[derive(Component)]
+        pub struct ButtonResume;
+
+        #[derive(Component)]
+        pub struct ButtonMainMenu;
+
+        #[derive(Component)]
+        pub struct ButtonQuit;
+    }
 }

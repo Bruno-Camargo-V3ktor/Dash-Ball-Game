@@ -585,4 +585,117 @@ pub mod ui {
             }
         }
     }
+
+    pub mod pause_menu {
+        pub const NORMAL_BUTTON_COLOR: Color = Color::linear_rgb(0.15, 0.15, 0.15);
+        pub const HOVERED_BUTTON_COLOR: Color = Color::linear_rgb(0.25, 0.25, 0.25);
+        pub const PRESSED_BUTTON_COLOR: Color = Color::linear_rgb(0.35, 0.75, 0.35);
+
+        use super::super::super::components::ui::pause_menu::*;
+        use bevy::prelude::*;
+
+        pub fn spawn_pause_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
+            commands
+                .spawn((
+                    PauseMenuContainer,
+                    Node {
+                        padding: UiRect::axes(Val::Px(64.0), Val::Px(64.0)),
+                        width: Val::Vw(100.0),
+                        height: Val::Vh(100.0),
+
+                        flex_direction: FlexDirection::Column,
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+
+                        ..Default::default()
+                    },
+                ))
+                .with_children(|p| {
+                    let _container = p
+                        .spawn((
+                            Node {
+                                padding: UiRect::axes(Val::Px(64.0), Val::Px(64.0)),
+                                width: Val::Auto,
+                                height: Val::Auto,
+
+                                flex_direction: FlexDirection::Column,
+                                justify_content: JustifyContent::Center,
+                                align_items: AlignItems::Center,
+
+                                row_gap: Val::Px(16.0),
+
+                                ..Default::default()
+                            },
+                            BackgroundColor(Color::linear_rgba(0.15, 0.15, 0.15, 0.5)),
+                        ))
+                        .with_children(|p| {
+                            // Title
+                            p.spawn((
+                                Text::new("Pause"),
+                                TextLayout {
+                                    justify: Justify::Center,
+                                    linebreak: LineBreak::NoWrap,
+                                },
+                                TextFont {
+                                    font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                                    font_size: 64.0,
+                                    ..Default::default()
+                                },
+                                TextColor::WHITE,
+                            ));
+
+                            // Button Resume
+                            p.spawn(create_button(ButtonResume))
+                                .with_child(create_text_button("Resume", &asset_server));
+
+                            // Button Main Menu
+                            p.spawn(create_button(ButtonMainMenu))
+                                .with_child(create_text_button("Main Menu", &asset_server));
+
+                            // Button Quit
+                            p.spawn(create_button(ButtonQuit))
+                                .with_child(create_text_button("Quit", &asset_server));
+                        });
+                });
+        }
+
+        pub fn despawn_pause_menu(
+            mut commands: Commands,
+            pause_menu: Query<Entity, With<PauseMenuContainer>>,
+        ) {
+            if let Ok(entity) = pause_menu.single() {
+                commands.entity(entity).despawn();
+            }
+        }
+
+        pub fn create_button(component: impl Component) -> impl Bundle {
+            (
+                component,
+                Node {
+                    width: Val::Px(300.0),
+                    height: Val::Px(100.0),
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    ..default()
+                },
+                BackgroundColor(NORMAL_BUTTON_COLOR),
+            )
+        }
+
+        pub fn create_text_button(
+            text: impl Into<String>,
+            asset_server: &Res<AssetServer>,
+        ) -> impl Bundle {
+            (
+                Text::new(text),
+                TextLayout::new_with_justify(Justify::Center),
+                TextFont {
+                    font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                    font_size: 32.0,
+                    ..Default::default()
+                },
+                TextColor::WHITE,
+            )
+        }
+    }
 }

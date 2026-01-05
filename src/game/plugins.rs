@@ -117,6 +117,14 @@ impl Plugin for UIPlugin {
         app.add_systems(OnEnter(AppState::Game), hud::spawn_hud)
             .add_systems(OnExit(AppState::Game), hud::despawn_hud)
             .add_systems(
+                OnEnter(SimulationState::GamePaused),
+                pause_menu::spawn_pause_menu,
+            )
+            .add_systems(
+                OnExit(SimulationState::GamePaused),
+                pause_menu::despawn_pause_menu,
+            )
+            .add_systems(
                 Update,
                 (hud::update_score_text, hud::update_enemys_text).run_if(in_state(AppState::Game)),
             );
