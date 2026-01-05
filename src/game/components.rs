@@ -108,4 +108,20 @@ pub mod ui {
         #[derive(Component)]
         pub struct ButtonQuit;
     }
+
+    pub mod gameover {
+        use bevy::prelude::*;
+
+        #[derive(Component)]
+        pub struct GameOverContainer;
+
+        #[derive(Component)]
+        pub struct ButtonRestart;
+
+        #[derive(Component)]
+        pub struct ButtonMainMenu;
+
+        #[derive(Component)]
+        pub struct ButtonQuit;
+    }
 }

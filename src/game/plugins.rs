@@ -124,6 +124,8 @@ impl Plugin for UIPlugin {
                 OnExit(SimulationState::GamePaused),
                 pause_menu::despawn_pause_menu,
             )
+            .add_systems(OnEnter(AppState::GameOver), gameover::spawn_gameover_menu)
+            .add_systems(OnExit(AppState::GameOver), gameover::despawn_gameover_menu)
             .add_systems(
                 Update,
                 (hud::update_score_text, hud::update_enemys_text).run_if(in_state(AppState::Game)),
