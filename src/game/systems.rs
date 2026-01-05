@@ -591,6 +591,8 @@ pub mod ui {
         pub const HOVERED_BUTTON_COLOR: Color = Color::linear_rgb(0.25, 0.25, 0.25);
         pub const PRESSED_BUTTON_COLOR: Color = Color::linear_rgb(0.35, 0.75, 0.35);
 
+        use crate::{AppState, game::states::SimulationState};
+
         use super::super::super::components::ui::pause_menu::*;
         use bevy::prelude::*;
 
@@ -679,6 +681,7 @@ pub mod ui {
                     ..default()
                 },
                 BackgroundColor(NORMAL_BUTTON_COLOR),
+                Button,
             )
         }
 
@@ -696,6 +699,77 @@ pub mod ui {
                 },
                 TextColor::WHITE,
             )
+        }
+
+        pub fn interact_with_resume_button(
+            mut button_query: Query<
+                (&Interaction, &mut BackgroundColor),
+                (Changed<Interaction>, With<ButtonResume>),
+            >,
+            mut changed_state: ResMut<NextState<SimulationState>>,
+        ) {
+            if let Ok((interaction, mut background)) = button_query.single_mut() {
+                match *interaction {
+                    Interaction::Hovered => {
+                        background.0 = HOVERED_BUTTON_COLOR;
+                    }
+                    Interaction::Pressed => {
+                        background.0 = PRESSED_BUTTON_COLOR;
+                        changed_state.set(SimulationState::GameRunning);
+                    }
+                    Interaction::None => {
+                        background.0 = NORMAL_BUTTON_COLOR;
+                    }
+                }
+            }
+        }
+
+        pub fn interact_with_main_menu_button(
+            mut button_query: Query<
+                (&Interaction, &mut BackgroundColor),
+                (Changed<Interaction>, With<ButtonMainMenu>),
+            >,
+            mut changed_app_state: ResMut<NextState<AppState>>,
+            mut changed_game_state: ResMut<NextState<SimulationState>>,
+        ) {
+            if let Ok((interaction, mut background)) = button_query.single_mut() {
+                match *interaction {
+                    Interaction::Hovered => {
+                        background.0 = HOVERED_BUTTON_COLOR;
+                    }
+                    Interaction::Pressed => {
+                        background.0 = PRESSED_BUTTON_COLOR;
+                        changed_game_state.set(SimulationState::GameRunning);
+                        changed_app_state.set(AppState::MainMenu);
+                    }
+                    Interaction::None => {
+                        background.0 = NORMAL_BUTTON_COLOR;
+                    }
+                }
+            }
+        }
+
+        pub fn interact_with_quit_button(
+            mut button_query: Query<
+                (&Interaction, &mut BackgroundColor),
+                (Changed<Interaction>, With<ButtonQuit>),
+            >,
+            mut commands: Commands,
+        ) {
+            if let Ok((interaction, mut background)) = button_query.single_mut() {
+                match *interaction {
+                    Interaction::Hovered => {
+                        background.0 = HOVERED_BUTTON_COLOR;
+                    }
+                    Interaction::Pressed => {
+                        background.0 = PRESSED_BUTTON_COLOR;
+                        commands.write_message(AppExit::Success);
+                    }
+                    Interaction::None => {
+                        background.0 = NORMAL_BUTTON_COLOR;
+                    }
+                }
+            }
         }
     }
 }

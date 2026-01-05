@@ -127,6 +127,15 @@ impl Plugin for UIPlugin {
             .add_systems(
                 Update,
                 (hud::update_score_text, hud::update_enemys_text).run_if(in_state(AppState::Game)),
+            )
+            .add_systems(
+                Update,
+                (
+                    pause_menu::interact_with_resume_button,
+                    pause_menu::interact_with_main_menu_button,
+                    pause_menu::interact_with_quit_button,
+                )
+                    .run_if(in_state(SimulationState::GamePaused)),
             );
     }
 }
